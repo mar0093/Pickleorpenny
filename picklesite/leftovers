@@ -1,0 +1,295 @@
+############################
+
+# The graphics for the graph.
+#plt.show()
+    #ax.xaxis.set_major_formatter(dates.DateFormatter('%Y-%m-%d'))
+    #ax.grid(True)
+    '''
+    df["Close_av_100"] = df['Close'].rolling(100).mean()
+    df["Date"] = [dt.datetime.strptime(d, '%Y-%m-%d') for d in df["Date"]]
+    df["Date"] = pd.to_datetime(df["Date"])
+    df["Date"] = df["Date"].dt.tz_localize('utc')
+    df = df.set_index(df["Date"])
+    #df["Open"] = df["Open"].astype('float')
+    #df["Close"] = df["Close"].astype('float')
+    #df["High"] = df["Close"].astype('float')
+    #df["Low"] = df["Close"].astype('float')
+    #df["Date"] = pd.to_datetime(df["Date"])
+    #df[""]
+    #print(df, file=sys.stderr)
+    #df["Date"] = df["Date"].apply(mdates.date2num)
+    #print(df, file=sys.stderr)
+    #print(mdates.num2date(736873.0))
+    #df["Date"] = df["Date"].apply(mdates.date2num)
+    #df["Date"] = df.index.map([dt.datetime.strptime(d, '%Y-%m-%d').toordinal() for d in df["Date"]])
+    #volume_data = df.Volume
+    #df["date"] = date2num(pd.to_datetime(df["date"]))
+    #date_data = df.Date
+    #date(2006, 4, 1).toordinal()
+
+    ###########probably something wrong here
+    #df["Date"] = [dt.datetime.strptime(d, '%Y-%m-%d').toordinal() for d in df["Date"]]
+    ################ from date stamp to unix#########
+
+    ######################################################
+    #df = df.set_index(df["Date"].astype(dt.date))
+    #df.index = pd.to_numeric(df.index)
+    #df = df.drop(columns=["Date"])
+    #df = df.set_index("Date", inplace=False)
+
+    #print(df, file=sys.stderr)
+    #df = pd.DataFrame(list(result), columns=["Date", "Open", "High", "Low", "Close", "Adj_Close", "Volume"])
+    fig, [ax1,ax2] = plt.subplots(2,1,figsize=(12, 6))
+    ax2 = plt.subplot2grid((6, 1), (5, 0), rowspan=1, colspan=1)
+    ax1 = plt.subplot2grid((6, 1), (0, 0), rowspan=5, colspan=1)
+    def plot_candles(pricing,title=None, volume_bars=False, color_function=None, technicals=None):
+        def default_color(index, open_price, close_price, low, high):
+            return 'r' if open_price[index] > close_price[index] else 'g'
+
+        color_function = color_function or default_color
+        technicals = technicals or []
+        open_price = pricing["Open"]
+        close_price = pricing["Close"]
+        low = pricing["Low"]
+        high = pricing['High']
+        oc_min = pd.concat([open_price, close_price], axis=1).min(axis=1)
+        oc_max = pd.concat([open_price, close_price], axis=1).max(axis=1)
+        #if volume_bars:
+        #    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True, gridspec_kw={'height_ratios': [3, 1]})
+        #else:
+        #    fig, ax1 = plt.subplots(1, 1)
+        if title:
+            ax1.set_title(title)
+        x = np.arange(len(pricing))
+        candle_colors = [color_function(i, open_price, close_price, low, high) for i in x]
+        candles = ax1.bar(x, oc_max - oc_min, bottom=oc_min, color=candle_colors, linewidth=0)
+        lines = ax1.vlines(x + 0.4, low, high, color=candle_colors, linewidth=1)
+        ax1.xaxis.grid(False)
+        ax1.xaxis.set_tick_params(which='major', length=3.0, direction='in', top='off')
+        ax1.locator_params(nbins=4, axis='x')
+        # Assume minute frequency if first two bars are in the same day.
+        # frequency = 'minute' if (pricing.index[1] - pricing.index[0]).days == 0 else 'day'
+        time_format = '%d-%m-%Y'
+        # if frequency == 'minute':
+        #  time_format = '%H:%M'
+        # Set X axis tick labels.
+        # plt.xticks(np.arange(0,lpi,eight_bits), [date.strftime(time_format) for date in pricing.index[0::eight_bits]])
+
+
+        # months = mdates.MonthLocator()  # every month
+        # yearsFmt = mdates.DateFormatter('%Y')
+
+        # ax1.xaxis.set_major_formatter(yearsFmt)
+        # ax1.xaxis.set_minor_locator(months)
+        # years = mdates.YearLocator()
+        # ax1.xaxis.set_major_locator(years)
+        plt.xticks(x, [date.strftime(time_format) for date in pricing.index])  # NEED THIS FOR ORIGINAL
+        ax1.xaxis.set_ticks([])
+        pricing["Close_av_100"] = pricing['Close'].rolling(100).mean()
+        # pricing["Close_av_100"] = pd.rolling_mean(pricing["Close"],100)
+        ax1.plot(x, pricing["Close_av_100"])
+        # N = len(pricing.index)
+        # ind = np.arange(N)  # the evenly spaced plot indices
+
+        #    def format_date(x, pos=None):
+        #       thisind = np.clip(int(x + 0.5), 0, N - 1)
+        #      return pricing.index[thisind].strftime('%Y-%m-%d')
+
+        for indicator in technicals:
+            ax1.plot_date(x, indicator, xdate=True)
+
+        if volume_bars:
+            volume = pricing['Volume']
+            volume_scale = None
+            scaled_volume = volume
+            if volume.max() > 1000000:
+                volume_scale = 'M'
+                scaled_volume = volume / 1000000
+            elif volume.max() > 1000:
+                volume_scale = 'K'
+                scaled_volume = volume / 1000
+            ax2.bar(x, scaled_volume, color=candle_colors)
+            volume_title = 'Volume'
+            if volume_scale:
+                volume_title = 'Volume (%s)' % volume_scale
+            ax2.set_title(volume_title)
+            ax2.xaxis.grid(False)
+            ax2.xaxis.set_major_locator(ticker.LinearLocator())
+    ax1.xaxis.set_ticks([])
+    ax2.plot(df.index, df["Volume"])
+    plot_candles(df)
+    #x = np.arange(len(df))
+    #time_format = '%d-%m-%Y'
+    #plt.xticks(x, [date.strftime(time_format) for date in df.index])
+    #df["Close_av_100"] = pd.rolling_mean(df["Close"],100)
+    #ax.plot(x, df["Close_av_100"])
+    #mpl_finance.candlestick2_ohlc(ax, df.Open, df.High, df.Low, df.Close,
+     #                 width=0.6, colorup='r', colordown='c', alpha=1)
+    '''
+    '''
+    ax.xaxis.set_ticks([])
+    df = df.set_index(df["Date"])
+    print(type(df.index[0]))
+    new_list = []
+    for i in df.index:
+        t = pd.tslib.Timestamp(i)
+        new_list.append(t)
+    print(new_list)
+    print(type(new_list[0]))
+    xdate = new_list
+
+    def mydate(x, pos):
+        try:
+            return xdate[int(x)]
+        except IndexError:
+            return ''
+
+    ax.xaxis.set_major_formatter(ticker.FuncFormatter(mydate))
+    '''
+    '''
+    #df["Close_av_100"] = pd.rolling_mean(df["Close"],100)
+    #print(["Close_av_100"])
+    #ax.plot(df.index, df["Close_av_100"])
+
+    #print(date_l)
+    #print(date_data_l)
+    #df = df.set_index(date_data_l,inplace=False,drop=False)
+    #date_data_l2 =  [float(i) for i in date_data_l]
+    #print(date_data_l2)
+    #dates = mdates.num2date(date_data_l2)
+    #print(dates)
+    #df.set_index(dates)
+    #quotes = tuple((date_data_l[i], open_data_l[i], close_data_l[i], high_data_l[i], low_data_l[i])for i in range(len(date_data_l))) # _1
+    #print(quotes, file=sys.stderr)
+    #df['Date'].map(dt.datetime.toordinal)
+    #df.index = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in df.index]
+    #####################
+    #Do Dates properly
+    #####################
+
+
+    #####################
+    #ohlc = df[["Date", "Open", "High", "Low", "Close"]].copy()
+    #fig, ax1 = plt.subplots(figsize=(12, 6))
+
+    #mpl_finance.candlestick_ochl(ax1, df[["Date","Open", "Close", "High", "Low"]].values, width=0.6)
+    #mpl_finance.candlestick_ochl(ax1, quotes, width=4, colorup='k', colordown='r', alpha=0.75)
+    #mpl_finance.candlestick2_ochl(ax1, open_data_l, close_data_l, high_data_l, low_data_l, width=4, colorup='k', colordown='r', alpha=0.75)
+    #xdate = df.index
+    #print(xdate)
+    '''
+    '''
+    def mydate(x, pos):
+        try:
+            return xdate[int(x)]
+        except IndexError:
+            return ''
+
+    ax1.xaxis.set_major_formatter(ticker.FuncFormatter(mydate))
+    ax1.format_xdata = mdates.DateFormatter('%Y-%m-%d')
+    '''
+    #mpl_finance.candlestick_ohlc(ax1, ohlc.values, width=.6, colorup='green', colordown='red')
+    #ax1.format_xdata = mdates.DateFormatter('%Y-%m-%d')
+    #ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    #ax1.set_xticklabels(df["Date"].apply(mdates.num2date))
+    #df["Date"] = [time.mktime(dt.datetime.strptime(d, '%Y-%m-%d').timetuple()) for d in df["Date"]]
+    #xdate = [dt.datetime.fromtimestamp(i) for i in df['Date']]
+
+
+    '''
+    years = mdates.YearLocator()  # every year
+    months = mdates.MonthLocator()  # every month
+    yearsFmt = mdates.DateFormatter('%Y')
+    ax1.xaxis.set_major_locator(years)
+    ax1.xaxis.set_major_formatter(yearsFmt)
+    ax1.xaxis.set_minor_locator(months)
+
+    '''
+
+    '''
+    def mydate(x,pos):
+        try:
+            print(xdate[int(x)])
+            return xdate[int(x)]
+        except IndexError:
+            return ''
+
+    ax1.xaxis.set_major_locator(myticker.MaxNLocator(6))
+    ax1.xaxis.set_major_formatter(myticker.FuncFormatter(mydate))
+    #fig.autofmt_xdate()
+    fig.tight_layout()
+    plt.title("3 Months", fontsize="12")
+    ################ from date stamp to unix#########
+    df["Date"] = [time.mktime(dt.datetime.strptime(d,'%Y-%m-%d').timetuple()) for d in df["Date"]]
+    print(df["Date"], file=sys.stderr)
+    ############### From unix time to matplotlib time#############
+    date_conv_unix2matplt = np.vectorize(dt.datetime.fromtimestamp)
+    df["Date"] = date_conv_unix2matplt(df["Date"])
+    print(df["Date"], file=sys.stderr)
+    #ax2 = plt.subplot2grid((6, 1), (5, 0), rowspan=1, colspan=1)
+    #ax1 = plt.subplot2grid((6, 1), (0, 0), rowspan=5, colspan=1,sharex=ax2)
+
+
+
+    # format the ticks
+    #dummy = 1000*[np.random.randint(1,101)] + 745*[np.random.randint(1,101)]
+    #ax1.plot(x_dates, dummy)
+    #mpl_finance.candlestick2_ochl(ax1, open_data, close_data, high_data, low_data, width=0.7, colorup='g', colordown='r', alpha=0.20)
+    #ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    #ax1.format_xdata = mdates.DateFormatter('%Y-%m-%d')
+
+    #plt.close('all')
+
+    #ax2.plot(volume_data)
+    #ax1.get_shared_x_axes().join(ax1, ax2)
+    #ax1.set_xticklabels([])
+
+    #ax2.xaxis.set_major_locator(years)
+    #ax2.xaxis.set_major_formatter(yearsFmt)
+    #ax2.xaxis.set_minor_locator(months)
+
+
+    #ax1.set_xticklabels([])
+    #ax2.autoscale()
+    # rotates and right aligns the x labels, and moves the bottom of the
+    # axes up to make room for them
+
+    #fig.autofmt_xdate()
+    #plt.show()
+
+    #fig.subplots_adjust(hspace=1)
+    #plt.show()
+    #ax.xaxis_date()
+    #ax.set_xticklabels([])
+    #plt.show()
+    test_var = mpld3.fig_to_html(fig)
+    #plt.show()
+    '''
+    print("g")
+    ##########################################################################
+    ##my search code
+
+     function EvaluateForm() {
+        }
+        if (document.getElementById('searchText').value.isInList('1AL', '1ST', '3DP', '3PL', '4CE', '4DS', '88E', '8EC', '8IH', '9SP', 'A2M', 'A3D', 'AAC', 'AAD', 'AAJ', 'AAR', 'AB1', 'ABA', 'ABC', 'ABP', 'ABT', 'ABU', 'ABV', 'ABX', 'AC8', 'ACB', 'ACG', 'ACK', 'ACQ', 'ACR', 'ACW', 'ACX', 'ADA', 'ADH', 'ADJ', 'ADN', 'ADO', 'ADR', 'ADV', 'AEB', 'AEE', 'AEG', 'AEI', 'AFA', 'AFG', 'AFI', 'AFP', 'AGD', 'AGI', 'AGL', 'AGO', 'AGY', 'AHF', 'AHG', 'AHK', 'AHY', 'AHZ', 'AIA', 'AIS', 'AIZ', 'AJA', 'AJD', 'AJL', 'AJM', 'AJX', 'AKP', 'ALC', 'ALF', 'ALI', 'ALK', 'ALL', 'ALQ', 'ALR', 'ALU', 'AMA', 'AMC', 'AME', 'AMH', 'AMI', 'AML', 'AMP', 'ANG', 'ANL', 'ANN', 'ANO', 'ANP', 'ANR', 'ANW', 'ANZ', 'AO1', 'AOF', 'AOG', 'AOH', 'AOK', 'AOP', 'AOU', 'APA', 'APC', 'APD', 'APE', 'APG', 'API', 'APL', 'APO', 'APT', 'APW', 'APX', 'APZ', 'AQC', 'AQD', 'AQF', 'AQG', 'AQI', 'AQQ', 'AQS', 'AQX', 'AQZ', 'ARB', 'ARD', 'ARE', 'ARF', 'ARG', 'ARL', 'ARM', 'ARU', 'ARV', 'ASB', 'ASG', 'ASL', 'ASN', 'ASP', 'AST', 'ATC', 'ATL', 'ATP', 'ATS', 'ATU', 'AU1', 'AUB', 'AUF', 'AUI', 'AUP', 'AUR', 'AUZ', 'AVB', 'AVG', 'AVH', 'AVI', 'AVJ', 'AVL', 'AVN', 'AVQ', 'AVZ', 'AWC', 'AWE', 'AWN', 'AWQ', 'AWV', 'AWY', 'AXE', 'AXI', 'AXL', 'AXP', 'AXT', 'AYF', 'AYR', 'AYS', 'AZJ', 'AZM', 'AZS', 'AZV', 'AZY', 'BAF', 'BAP', 'BAR', 'BAT', 'BAU', 'BBG', 'BBN', 'BBX', 'BCI', 'BCK', 'BCN', 'BCT', 'BDA', 'BDR', 'BEE', 'BEN', 'BFC', 'BFG', 'BGA', 'BHD', 'BHL', 'BHP', 'BID', 'BIG', 'BIN', 'BIS', 'BIT', 'BKI', 'BKW', 'BKY', 'BLA', 'BLD', 'BLG', 'BLK', 'BLT', 'BLX', 'BLY', 'BMG', 'BMN', 'BMP', 'BNO', 'BNR', 'BOC', 'BOE', 'BOL', 'BOQ', 'BOT', 'BPF', 'BPL', 'BPS', 'BPT', 'BRB', 'BRC', 'BRG', 'BRK', 'BRL', 'BRN', 'BRU', 'BSA', 'BSE', 'BSL', 'BSM', 'BSR', 'BST', 'BTH', 'BTI', 'BTT', 'BUB', 'BUD', 'BUL', 'BUX', 'BVS', 'BWP', 'BWR', 'BWX', 'BXB', 'BYE', 'BYI', 'BYL', 'CAA', 'CAB', 'CAF', 'CAI', 'CAJ', 'CAM', 'CAN', 'CAP', 'CAQ', 'CAR', 'CAS', 'CAT', 'CAY', 'CAZ', 'CBL', 'CCA', 'CCE', 'CCL', 'CCP', 'CCV', 'CCZ', 'CDA', 'CDC', 'CDD', 'CDM', 'CDP', 'CDU', 'CDV', 'CDY', 'CEL', 'CEN', 'CFE', 'CFO', 'CGA', 'CGC', 'CGF', 'CGL', 'CGM', 'CGN', 'CGR', 'CGS', 'CHC', 'CHK', 'CHN', 'CHP', 'CIE', 'CIM', 'CIN', 'CIO', 'CIP', 'CIW', 'CKA', 'CKF', 'CL1', 'CL8', 'CLA', 'CLH', 'CLL', 'CLQ', 'CLV', 'CLW', 'CLX', 'CLZ', 'CM8', 'CMA', 'CMC', 'CMI', 'CMM', 'CMP', 'CMW', 'CNI', 'CNJ', 'CNQ', 'CNU', 'CNW', 'CO1', 'COB', 'COE', 'COG', 'COI', 'COM', 'COY', 'CPH', 'CPU', 'CQG', 'CQR', 'CR8', 'CRB', 'CSR', 'CSS', 'CSV', 'CTD', 'CTE', 'CTN', 'CTO', 'CTP', 'CTX', 'CUP', 'CUV', 'CVC', 'CVN', 'CVS', 'CVT', 'CVV', 'CVW', 'CWN', 'CWP', 'CWY', 'CXM', 'CXO', 'CXX', 'CYA', 'CYB', 'CYG', 'CYP', 'CYQ', 'CYY', 'CZL', 'CZN', 'CZZ', 'D13', 'D2O', 'DAV', 'DCC', 'DCG', 'DCL', 'DCN', 'DDR', 'DDT', 'DEG', 'DFM', 'DGO', 'DJW', 'DLX', 'DN8', 'DNA', 'DNK', 'DOW', 'DRM', 'DRO', 'DRX', 'DSX', 'DTI', 'DTL', 'DTM', 'DTS', 'DTZ', 'DUB', 'DUI', 'DVN', 'DWS', 'DXB', 'DXS', 'DYL', 'E2M', 'EAI', 'EAR', 'EAS', 'EBG', 'EBO', 'ECX', 'EDE', 'EEG', 'EGH', 'EGI', 'EGN', 'EGS', 'EHE', 'EHH', 'EHL', 'ELD', 'ELK', 'ELO', 'ELS', 'ELX', 'EMC', 'EMF', 'EMH', 'EML', 'EMR', 'ENA', 'ENN', 'ENT', 'EOS', 'EPD', 'EPM', 'EPT', 'EPW', 'EQT', 'EQX', 'ERA', 'ERL', 'ERM', 'ESE', 'ESH', 'ESI', 'ETE', 'EUC', 'EVN', 'EVT', 'EVZ', 'EWC', 'EXC', 'EXG', 'EXU', 'EYM', 'EZL', 'FAR', 'FBR', 'FBU', 'FCT', 'FDM', 'FET', 'FFC', 'FFG', 'FFT', 'FGG', 'FGR', 'FGX', 'FID', 'FIG', 'FLK', 'FLN', 'FMG', 'FMS', 'FNP', 'FNT', 'FOR', 'FPC', 'FPH', 'FRI', 'FRM', 'FRX', 'FSA', 'FSF', 'FSG', 'FSI', 'FTT', 'FUN', 'FWD', 'FXJ', 'FXL', 'FZO', 'G88', 'GAP', 'GBE', 'GBG', 'GBP', 'GBR', 'GBT', 'GBX', 'GC1', 'GCY', 'GDI', 'GDX', 'GED', 'GEG', 'GEM', 'GEV', 'GFL', 'GFY', 'GGG', 'GGL', 'GID', 'GLB', 'GLF', 'GLL', 'GMA', 'GMC', 'GMD', 'GMG', 'GMN', 'GNC', 'GNE', 'GNG', 'GNX', 'GOR', 'GOW', 'GOZ', 'GPP', 'GPR', 'GPT', 'GPX', 'GRA', 'GRB', 'GRR', 'GSC', 'GSL', 'GSS', 'GSW', 'GTE', 'GTG', 'GTK', 'GTN', 'GTY', 'GUD', 'GVF', 'GWA', 'GXL', 'GXY', 'HAS', 'HAV', 'HEG', 'HFA', 'HFR', 'HGO', 'HHV', 'HHY', 'HIG', 'HIL', 'HLO', 'HLX', 'HNG', 'HNR', 'HOM', 'HPI', 'HRL', 'HRR', 'HSN', 'HSO', 'HT1', 'HT8', 'HUB', 'HUO', 'HVN', 'HXG', 'HZN', 'HZR', 'IAB', 'IAG', 'IAM', 'IAU', 'IBC', 'IBG', 'IBX', 'ICG', 'ICN', 'ICQ', 'ICT', 'IDA', 'IDR', 'IDT', 'IDX', 'IDZ', 'IEC', 'IEL', 'IFL', 'IFM', 'IFN', 'IGL', 'IGO', 'IHD', 'IHK', 'IHL', 'IIL', 'ILC', 'ILU', 'IMC', 'IMD', 'IMF', 'INA', 'ING', 'INK', 'IOF', 'IOT', 'IOZ', 'IPD', 'IPH', 'IPL', 'IRC', 'IRD', 'IRE', 'IRI', 'ISD', 'ISG', 'ISO', 'ISU', 'ISX', 'ITL', 'IVC', 'IVO', 'IVQ', 'IVR', 'JAT', 'JBH', 'JCI', 'JHC', 'JHL', 'JHX', 'JIN', 'JKL', 'JRV', 'JYC', 'K2F', 'K2P', 'KAM', 'KAR', 'KCN', 'KDR', 'KEY', 'KFE', 'KGD', 'KGL', 'KGN', 'KIN', 'KLL', 'KMD', 'KME', 'KNM', 'KNO', 'KOV', 'KPG', 'KPL', 'KPO', 'KPT', 'KRC', 'KRL', 'KSC', 'KSL', 'KSN', 'KYK', 'LAA', 'LAU', 'LBT', 'LCA', 'LCK', 'LCM', 'LEG', 'LEP', 'LER', 'LFR', 'LGD', 'LGR', 'LHB', 'LHC', 'LI3', 'LIT', 'LKE', 'LLC', 'LLO', 'LMG', 'LMW', 'LNG', 'LNK', 'LNU', 'LOM', 'LOV', 'LPD', 'LPE', 'LSH', 'LSR', 'LTR', 'LVH', 'LVT', 'LYC', 'LYL', 'M7T', 'MA1', 'MAG', 'MAH', 'MAQ', 'MAT', 'MAY', 'MBE', 'MBK', 'MCE', 'MCP', 'MCR', 'MCT', 'MCY', 'MDC', 'MDI', 'MDL', 'MDR', 'MEA', 'MEB', 'MEC', 'MED', 'MEI', 'MEL', 'MEP', 'MEU', 'MEZ', 'MFF', 'MFG', 'MGC', 'MGE', 'MGL', 'MGP', 'MGR', 'MGT', 'MGV', 'MGX', 'MHG', 'MHI', 'MHJ', 'MIL', 'MIN', 'MIR', 'MJC', 'MJP', 'MLB', 'MLD', 'MLM', 'MLT', 'MLX', 'MMI', 'MMJ', 'MML', 'MMS', 'MNC', 'MND', 'MNE', 'MNF', 'MNM', 'MNW', 'MNY', 'MOC', 'MOD', 'MOE', 'MOQ', 'MOT', 'MOX', 'MOY', 'MP1', 'MPL', 'MPO', 'MPP', 'MPW', 'MQA', 'MQR', 'MRC', 'MRG', 'MRM', 'MRN', 'MRQ', 'MRV', 'MSB', 'MSI', 'MSP', 'MSV', 'MTL', 'MTO', 'MTR', 'MTS', 'MUA', 'MUS', 'MVA', 'MVB', 'MVE', 'MVF', 'MVP', 'MVR', 'MVS', 'MVT', 'MVW', 'MWR', 'MWY', 'MX1', 'MXC', 'MXI', 'MYE', 'MYO', 'MYQ', 'MYR', 'MYS', 'MYX', 'MZI', 'MZN', 'NAB', 'NAC', 'NAG', 'NAM', 'NAN', 'NBL', 'NCC', 'NCK', 'NCM', 'NDQ', 'NEA', 'NEC', 'NEU', 'NGE', 'NHC', 'NHF', 'NMG', 'NML', 'NMS', 'NMT', 'NOR', 'NOV', 'NOX', 'NRT', 'NSL', 'NSR', 'NST', 'NTC', 'NTI', 'NTM', 'NTU', 'NUF', 'NUH', 'NVL', 'NVO', 'NVT', 'NWH', 'NWS', 'NXM', 'NXT', 'NZC', 'NZM', 'OBJ', 'OCL', 'OEL', 'OFX', 'OGC', 'OGX', 'OHE', 'OIL', 'OKU', 'OLI', 'OMH', 'OML', 'ONE', 'ONT', 'OOK', 'OOO', 'OPT', 'ORA', 'ORE', 'ORG', 'ORI', 'ORL', 'ORN', 'ORR', 'OSH', 'OSL', 'OSP', 'OTW', 'OVH', 'OVL', 'OVN', 'OVR', 'OZF', 'OZL', 'OZR', 'PAA', 'PAC', 'PAF', 'PAI', 'PAN', 'PAR', 'PBT', 'PCG', 'PDI', 'PDZ', 'PEA', 'PEN', 'PEP', 'PEX', 'PFG', 'PGC', 'PGF', 'PGH', 'PGI', 'PGM', 'PGO', 'PGR', 'PGY', 'PHI', 'PHK', 'PIC', 'PIL', 'PIO', 'PL8', 'PLG', 'PLH', 'PLS', 'PMC', 'PME', 'PMP', 'PMV', 'PNC', 'PNI', 'PNL', 'PNN', 'PNR', 'PNV', 'PNW', 'PNX', 'POH', 'POS', 'POU', 'POW', 'PPC', 'PPH', 'PPP', 'PPS', 'PPY', 'PRG', 'PRL', 'PRO', 'PRR', 'PRT', 'PRU', 'PRY', 'PSA', 'PSC', 'PSI', 'PSM', 'PSQ', 'PSY', 'PSZ', 'PTB', 'PTL', 'PTM', 'PTX', 'PVA', 'PVD', 'PWN', 'PXS', 'PYC', 'QAG', 'QAN', 'QAU', 'QBE', 'QBL', 'QFN', 'QFY', 'QHL', 'QIP', 'QMN', 'QNL', 'QOZ', 'QRE', 'QUB', 'QUR', 'QUS', 'QVE', 'RAC', 'RAN', 'RAP', 'RAR', 'RBL', 'RBO', 'RBR', 'RCB', 'RCE', 'RCG', 'RCR', 'RCT', 'RDF', 'RDG', 'RDH', 'RDM', 'RDS', 'RDV', 'RED', 'REG', 'RES', 'REX', 'REY', 'RFF', 'RFG', 'RFN', 'RFX', 'RGB', 'RGI', 'RGS', 'RHL', 'RHP', 'RHS', 'RHT', 'RIC', 'RKN', 'RLC', 'RLE', 'RMD', 'RMP', 'RMS', 'RMX', 'RNE', 'RNL', 'RNO', 'RNT', 'RNU', 'RRL', 'RRP', 'RSG', 'RSH', 'RTE', 'RTG', 'RTR', 'RUL', 'RVR', 'RVY', 'RWC', 'RWD', 'RXL', 'RXM', 'RXP', 'RYD', 'S2R', 'S32', 'SAM', 'SAR', 'SAS', 'SAU', 'SBB', 'SBM', 'SCG', 'SCO', 'SCP', 'SCU', 'SDA', 'SDF', 'SDG', 'SDI', 'SE1', 'SEA', 'SEG', 'SEH', 'SEK', 'SEN', 'SEQ', 'SES', 'SFC', 'SFG', 'SFH', 'SFI', 'SFL', 'SFR', 'SFX', 'SGC', 'SGF', 'SGM', 'SGP', 'SGQ', 'SGR', 'SGU', 'SHJ', 'SHL', 'SHM', 'SHO', 'SHV', 'SIG', 'SIQ', 'SIV', 'SKB', 'SKC', 'SKF', 'SKI', 'SKN', 'SKT', 'SLC', 'SLF', 'SLK', 'SLR', 'SLX', 'SM1', 'SMA', 'SMD', 'SMN', 'SMR', 'SMX', 'SNL', 'SNZ', 'SO4', 'SOL', 'SOM', 'SOR', 'SP1', 'SPI', 'SPK', 'SPL', 'SPO', 'SPQ', 'SPZ', 'SRG', 'SRO', 'SRS', 'SRV', 'SRX', 'SRZ', 'SSG', 'SSM', 'SSO', 'ST1', 'STL', 'STO', 'STX', 'SUD', 'SUL', 'SUN', 'SVA', 'SVH', 'SVM', 'SVW', 'SVY', 'SW1', 'SWJ', 'SWK', 'SWL', 'SWM', 'SXE', 'SXL', 'SXY', 'SYA', 'SYD', 'SYI', 'SYR', 'SYT', 'TAH', 'TAP', 'TAR', 'TAS', 'TAU', 'TAW', 'TB8', 'TBH', 'TBR', 'TCL', 'TEG', 'TEK', 'TER', 'TFG', 'TGA', 'TGG', 'TGH', 'TGN', 'TGP', 'TGR', 'TGZ', 'THD', 'TIA', 'TIG', 'TIL', 'TKM', 'TLG', 'TLM', 'TLS', 'TME', 'TMT', 'TMX', 'TMZ', 'TNE', 'TNG', 'TNK', 'TNR', 'TNT', 'TNY', 'TOE', 'TON', 'TOP', 'TOU', 'TOX', 'TPE', 'TPM', 'TPP', 'TRL', 'TRS', 'TRT', 'TRY', 'TSN', 'TTS', 'TV2', 'TWD', 'TWE', 'TWR', 'TYX', 'TZL', 'TZN', 'UBA', 'UBE', 'UBJ', 'UBN', 'UBW', 'UCM', 'UEQ', 'UNV', 'UOS', 'UPD', 'URB', 'URF', 'USD', 'USG', 'USR', 'UTR', 'UUV', 'VAH', 'VAL', 'VAR', 'VCX', 'VEC', 'VHT', 'VIC', 'VIV', 'VLA', 'VLT', 'VLW', 'VML', 'VMS', 'VMT', 'VOC', 'VPC', 'VRC', 'VRI', 'VRL', 'VRM', 'VRS', 'VRT', 'VRX', 'VSC', 'VTG', 'VVR', 'WAA', 'WAF', 'WAL', 'WAM', 'WAT', 'WAX', 'WBA', 'WBC', 'WBE', 'WBT', 'WCP', 'WDE', 'WEB', 'WFD', 'WGF', 'WGL', 'WGX', 'WHC', 'WHF', 'WIC', 'WKT', 'WLC', 'WLD', 'WLE', 'WLL', 'WMI', 'WMK', 'WNR', 'WOR', 'WOW', 'WPG', 'WPL', 'WPP', 'WQW', 'WRM', 'WSA', 'WSG', 'WSI', 'WTC', 'WTP', 'XF1', 'XIP', 'XPD', 'XPE', 'XRO', 'XST', 'XTD', 'XTE', 'YAL', 'YBR', 'YOJ', 'YOW', 'YPB', 'ZEL', 'ZEN', 'ZIM', 'ZLD', 'ZML', 'ZNO', 'ZNT'){
+                document.mysearch.action = "/shares2/"+document.getElementById('searchText').value+"/default"
+        }
+        else {
+                document.mysearch.action = "/about"
+        }
+     }
+
+    </script>
+    <script>
+                   if (!String.prototype.isInList) {
+       String.prototype.isInList = function() {
+          let value = this.valueOf();
+          for (let i = 0, l = arguments.length; i < l; i += 1) {
+             if (arguments[i] === value) return true;
+          }
+          return false;
+       }
+
+         function EvaluateForm() {
+     document.mysearch.action = "/shares2/"+document.getElementById('searchText').value+"/default"
+    }

@@ -1,0 +1,153 @@
+{% extends 'layout.html' %}
+
+{% block body %}
+<style>
+.container-scroll {
+    width: auto;
+    height:88px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    margin-bottom: 5px;
+}
+
+.container-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+
+.card {
+    display: inline-block;
+    height:88px;
+    Width:170px;
+    background-color:rgba(42,219,6,0.6);
+    position: relative;
+}
+
+.pct {
+    position: absolute;
+    top: 31px;
+    right: 3px;
+    font-family: "Droid Serif";
+    font-size:32px;
+
+}
+
+.container-scroll2 {
+    width: auto;
+    height:88px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
+    margin-bottom: 5px;
+}
+.container-scroll2::-webkit-scrollbar {
+    display: none;
+}
+
+.card2  {
+    display: inline-block;
+    height:88px;
+    Width:170px;
+    background-color: rgba(255, 0, 0, 0.6);
+    position: relative;
+}
+.pct2 {
+    position: absolute;
+    top: 31px;
+    right: 3px;
+    font-family: "Droid Serif";
+    font-size:32px;
+
+}
+
+</style>
+
+    <div class="container" style="background-color:#c6c6c6; padding: 5px;">
+        <div class="jumbtron text-center">
+            <h1>Pickle</h1>
+            <h4> Welcome to Pickle </h4>
+            <p class="lead">Please enter an ASX ticker into the search bar to get started.</p>
+        {% if session.logged_in == NULL %}
+            <a href="/register" class="btn btn-primary">Register</a>
+            <a href="/login" class="btn btn-primary">Log In</a>
+        {% endif %}
+
+        </div>
+    </div>
+    <div class="container"  style="margin-bottom: 5px; background-color:#c6c6c6; padding: 5px;">
+        <div class="jumbtron text-center">
+            <a href="/shares2/ddr/default" class="btn btn-primary">Test</a>
+        </div>
+    </div>
+    <div class="container" style="margin-bottom: 5px; background-color:#c6c6c6; padding: 5px;">
+        <div style="width:auto;height:auto;border:6px outset #444;background:#444;">
+
+        <a href="/shares2/{{id}}/default" class="btn btn-primary" style="border:none">Day</a>
+        <a href="/shares2/{{id}}/365" class="btn btn-primary">Week</a>
+        <a href="/shares2/{{id}}/183" class="btn btn-primary">Month</a>
+        <a href="/shares2/{{id}}/91" class="btn btn-primary">Year</a>
+        <a href="/shares2/{{id}}/30" class="btn btn-primary">Big Oof</a>
+        </div>
+    </div>
+    <div class="container-scroll">
+          <div class="card"><h2>AMP</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>DDR</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>NAB</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>ESH</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>ANZ</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>WTC</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>XXY</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>Z1P</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+          <div class="card"><h2>GXY</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct">3.53%</p>
+          </div>
+    </div>
+    <div class="container-scroll2">
+          <div class="card2"><h2>AMP</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>DDR</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>NAB</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>ESH</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>ANZ</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>WTC</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>XXY</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>Z1P</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+          <div class="card2"><h2>GXY</h2><p class="box-price" style="font-size:18px;"><b>$3.56</b></p>
+              <p class="pct2">3.53%</p>
+          </div>
+    </div>
+
+
+{% endblock %}
